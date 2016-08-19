@@ -23,83 +23,84 @@
 @import Foundation;
 @import AVFoundation;
 @import CoreMedia.CMTime;
+@import AVKit;
 
 #pragma mark CDVAdsVP
 @implementation AdsVP
 
 
-    /**
-     * This method is used to show the player and begin the play
-     */
-    - (void)play:(CDVInvokedUrlCommand*)command{
+/**
+ * This method is used to show the player and begin the play
+ */
+- (void)play:(CDVInvokedUrlCommand*)command{
+    
+    /**Creating plugin result object **/
+    CDVPluginResult* pluginResult;
+    
+    /** Reciving options settings for the plugin **/
+    NSString* videoURL = [command argumentAtIndex:0];
+    NSDictionary* options = [command argumentAtIndex:1];
+    
+    
+    /** Assign callback as self for better managment **/
+    self.callbackId = command.callbackId;
+    
+    /** Verify that an url has been passet to the plugin or redirect with error **/
+    if(videoURL == nil){
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"incorrect number of arguments"];
+    }
+    
+    
+    /** If a video url has been passed **/
+    else{
         
-        /**Creating plugin result object **/
-        CDVPluginResult* pluginResult;
+        /** Call the video player open **/
+        [self openVideoPlayer:[NSURL URLWithString:videoURL] withOptions:options];
         
-        /** Reciving options settings for the plugin **/
-        NSString* videoURL = [command argumentAtIndex:0];
-        NSDictionary* options = [command argumentAtIndex:1];
-        
-        
-        /** Assign callback as self for better managment **/
-        self.callbackId = command.callbackId;
-        
-        /** Verify that an url has been passet to the plugin or redirect with error **/
-        if(videoURL == nil){
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"incorrect number of arguments"];
-        }
-        
-        
-        /** If a video url has been passed **/
-        else{
-            
-            /** Call the video player open **/
-            [self openVideoPlayer:[NSURL URLWithString:videoURL] withOptions:options];
-            
-            /** Create plugin result as video started **/
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-            
-        }
-        
-        
-        /** Set keep callback for futures possible callbacks **/
-        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        
-        /** Return the callback */
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        /** Create plugin result as video started **/
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
         
     }
+    
+    
+    /** Set keep callback for futures possible callbacks **/
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    
+    /** Return the callback */
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    
+}
 
 
 
 
-    /**
-     * This method is used to initizialize and open the video player
-     */
-    - (void)openVideoPlayer:(NSURL*)url withOptions:(NSDictionary*)options
-    {
+/**
+ * This method is used to initizialize and open the video player
+ */
+- (void)openVideoPlayer:(NSURL*)url withOptions:(NSDictionary*)options
+{
+    
+    
+    __weak AdsVP* weakSelf = self;
+    
+    
+    /** If is the first time that we initizalize the Video Player **/
+    if (self.AdsVPViewController == nil) {
         
-        
-        __weak AdsVP* weakSelf = self;
-        
-        
-        /** If is the first time that we initizalize the Video Player **/
-        if (self.AdsVPViewController == nil) {
-            
-            /** call the initialization of the player **/
-            self.AdsVPViewController = [[AdsVPViewController alloc] init: options];
-        }
-        
-        
-        // Run later to avoid the "took a long time" log message.
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (weakSelf.AdsVPViewController != nil) {
-                [weakSelf.viewController presentViewController:self.AdsVPViewController animated:YES completion:nil];
-            }
-        });
-        
-        
+        /** call the initialization of the player **/
+        self.AdsVPViewController = [[AdsVPViewController alloc] init: options];
     }
+    
+    
+    // Run later to avoid the "took a long time" log message.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (weakSelf.AdsVPViewController != nil) {
+            [weakSelf.viewController presentViewController:self.AdsVPViewController animated:YES completion:nil];
+        }
+    });
+    
+    
+}
 
 @end
 
@@ -176,19 +177,21 @@
     
     
     //Creating the video player
-    NSURL *fileURL = [NSURL fileURLWithPath:@"https://www.peer5.com/media/bay_bridge.mp4"];
-    self.avPlayerItem = [AVPlayerItem playerItemWithURL:fileURL];
-    self.avPlayer = [AVPlayer playerWithPlayerItem:self.avPlayerItem];
-    self.avPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:self.avPlayer];
-    self.avPlayerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-    self.avPlayerLayer.frame = self.view.bounds;
+    NSURL *url = [NSURL URLWithString:@"https://www.peer5.com/media/bay_bridge.mp4"];
+    AVPlayer *avPlayer = [[AVPlayer alloc] initWithURL: url];
+    AVPlayerViewController *avPlayerController = [[AVPlayerViewController alloc]init];
+    avPlayerController.player = avPlayer;
+    avPlayerController.showsPlaybackControls=NO;
+    avPlayerController.view.frame = self.view.frame;
+    
+    
     
     
     //Attacching elements to the new created player view
+    [self.view addSubview:avPlayerController.view];
     [self.view addSubview:self.closeButton];
     [self.view addSubview:self.skipLabel];
     [self.view addSubview:self.spinner];
-    [self.view.layer addSublayer:self.avPlayerLayer];
     
     
     // Spinner Placement
