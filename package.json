@@ -1,9 +1,9 @@
 {
-  "name": "AdsVP",
+  "name": "CordovaPluginADSVP",
   "version": "0.0.1",
-  "description": "Advertising Video Player",
+  "description": "Cordova Advertising Video Player Plugin",
   "cordova": {
-    "id": "ch.mediati.cordova.plugins.adsvp",
+    "id": "com.manuelprojects.cordova.plugins.adsvp",
     "platforms": [
       "android",
       "ios"
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ModusCreateOrg/cordova-plugin-example.git"
+    "url": "git+https://github.com/manuelprojects/cordova-plugin-adsvp.git"
   },
   "keywords": [
     "cordova",
@@ -22,10 +22,10 @@
     "cordova-ios",
     "cordova-browser"
   ],
-  "author": "Modus Create",
+  "author": "Manuel Antoniotti",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ModusCreateOrg/cordova-plugin-example/issues"
+    "url": "https://github.com/manuelprojects/cordova-plugin-adsvp/issues"
   },
-  "homepage": "https://github.com/ModusCreateOrg/cordova-plugin-example#readme"
+  "homepage": "https://github.com/manuelprojects/cordova-plugin-adsvp#readme"
 }
