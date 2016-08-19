@@ -25,6 +25,7 @@
 @import CoreMedia.CMTime;
 @import AVKit;
 
+
 #pragma mark CDVAdsVP
 @implementation AdsVP
 
@@ -106,6 +107,11 @@
 
 
 
+@interface AdsVPViewController ()
+{
+    id<NSObject> _timeObserverToken;
+}
+@end
 
 
 
@@ -135,6 +141,7 @@
 /** Start creating the player view **/
 - (void)createViews
 {
+    
     
     /** Creating the link to the boundle used **/
     NSBundle* AdsVPBundle = [NSBundle bundleForClass:[AdsVP class]];
@@ -179,16 +186,19 @@
     //Creating the video player
     NSURL *url = [NSURL URLWithString:@"https://www.peer5.com/media/bay_bridge.mp4"];
     AVPlayer *avPlayer = [[AVPlayer alloc] initWithURL: url];
-    AVPlayerViewController *avPlayerController = [[AVPlayerViewController alloc]init];
-    avPlayerController.player = avPlayer;
-    avPlayerController.showsPlaybackControls=NO;
-    avPlayerController.view.frame = self.view.frame;
+    self.avPlayerController = [[AVPlayerViewController alloc]init];
+    self.avPlayerController.player = avPlayer;
+    self.avPlayerController.showsPlaybackControls=NO;
+    self.avPlayerController.view.frame = self.view.frame;
     
+    //Register listener for player events
+    [self.avPlayerController.player addObserver:self forKeyPath:@"status" options:0 context:nil];
+    [self.avPlayerController.player addObserver:self forKeyPath:@"rate" options:NSKeyValueObservingOptionNew context:NULL];
     
     
     
     //Attacching elements to the new created player view
-    [self.view addSubview:avPlayerController.view];
+    [self.view addSubview:self.avPlayerController.view];
     [self.view addSubview:self.closeButton];
     [self.view addSubview:self.skipLabel];
     [self.view addSubview:self.spinner];
@@ -274,9 +284,86 @@
 }
 
 
-- (void) viewDidAppear:(BOOL) animated {
-    [self.avPlayer play];
-    [super viewDidAppear:animated];
+
+
+//Listener callback for player status change
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    
+    
+    //check the player init status
+    if (object == self.avPlayerController.player && [keyPath isEqualToString:@"status"]) {
+        if (self.avPlayerController.player.status == AVPlayerStatusReadyToPlay) {
+            
+            [self.avPlayerController.player play];
+            
+            
+            __weak AdsVPViewController* weakSelf = self;
+            
+            
+            _timeObserverToken = [self.avPlayerController.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:dispatch_get_main_queue() usingBlock:
+                                  ^(CMTime time) {
+                                      
+                                      
+                                      NSInteger skippableInSeconds = 10;
+                                      Boolean allowSkip = YES;
+                                      
+                                      if(allowSkip){
+                                          
+                                          /***** calculate the time skip remaining for change the label text *****/
+                                          NSInteger RemainingSkip = (skippableInSeconds - CMTimeGetSeconds(time));
+                                          
+                                          
+                                          /***** if the current passing time seconds is more than one second change the label text, not show the 0 seconds... *****/
+                                          if(RemainingSkip >= 1 ){
+                                              weakSelf.skipLabel.text  = [NSString stringWithFormat:@"Puoi saltare questo video tra %ld", (long) RemainingSkip];
+                                          }
+                                          
+                                          
+                                          /***** if the current passing time seconds is bigger than the skip time set and the skip is allowed hide the label and show the close button *****/
+                                          if(RemainingSkip <= 0 ){
+                                              weakSelf.closeButton.hidden = false;
+                                              weakSelf.skipLabel.hidden = true;
+                                          }
+                                          
+                                      }
+                                      
+                                  }];
+            
+            
+            
+        } else if (self.avPlayerController.player.status == AVPlayerStatusFailed) {
+            NSLog(@"fail play");
+        }
+    }
+    
+    //check the player playing status
+    if (object == self.avPlayerController.player && [keyPath isEqualToString:@"rate"]) {
+        float rate = [change[NSKeyValueChangeNewKey] floatValue];
+        
+        //if the video is stopped
+        if (rate == 0.0) {
+            
+            //if the video is ended
+            if (CMTimeGetSeconds(self.avPlayerController.player.currentTime) >= CMTimeGetSeconds(self.avPlayerController.player.currentItem.duration)) {
+                NSLog(@"video ended");
+                self.spinner.hidden = YES;
+            }
+            //if the video is blocked due to other reasons...
+            else{
+                self.spinner.hidden = FALSE;
+            }
+            
+        }
+        //if the video is playing correctly
+        else if (rate == 1.0) {
+            self.spinner.hidden = YES;
+        }
+    }
+    
+    
+    
+    
+    
 }
 
 

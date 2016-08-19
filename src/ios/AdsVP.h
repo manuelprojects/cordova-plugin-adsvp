@@ -23,44 +23,47 @@
 
 #import <UIKit/UIKit.h>
 #import <AVFoundation/AVFoundation.h>
-
+@import AVKit;
 
 @class AdsVPViewController;
 
 
 @interface AdsVP : CDVPlugin {}
-    @property (nonatomic, retain) AdsVPViewController* AdsVPViewController;
-    @property (nonatomic, copy) NSString* callbackId;
-    - (void)play:(CDVInvokedUrlCommand*)command;
+@property (nonatomic, retain) AdsVPViewController* AdsVPViewController;
+@property (nonatomic, copy) NSString* callbackId;
+- (void)play:(CDVInvokedUrlCommand*)command;
 @end
 
 
 
 @interface AdsVPViewController : UIViewController <CDVScreenOrientationDelegate>{}
 
-    /** Define the view that will be used to display the player **/
-    @property (nonatomic, strong) IBOutlet UIView* playerView;
-    @property (nonatomic, strong) IBOutlet UIActivityIndicatorView* spinner;
-    @property (nonatomic, strong) IBOutlet UIButton* closeButton;
-    @property (nonatomic, strong) IBOutlet UILabel * skipLabel;
+/** Define the view that will be used to display the player **/
+@property (nonatomic, strong) IBOutlet AVPlayerViewController* avPlayerController;
+@property (nonatomic, strong) IBOutlet UIActivityIndicatorView* spinner;
+@property (nonatomic, strong) IBOutlet UIButton* closeButton;
+@property (nonatomic, strong) IBOutlet UILabel * skipLabel;
 
-
-    /** Implementation of the player */
-    @property (nonatomic, strong) IBOutlet AVPlayerItem * avPlayerItem;
-    @property (nonatomic, strong) IBOutlet AVPlayer * avPlayer;
-    @property (nonatomic, strong) IBOutlet AVPlayerLayer * avPlayerLayer;
+@property AVURLAsset *asset;
 
 
 
-    /** Avaiable method in the view **/
-    - (void)start;
+/** Implementation of the player */
+@property (nonatomic, strong) IBOutlet AVPlayerItem * avPlayerItem;
+@property (nonatomic, strong) IBOutlet AVPlayer * avPlayer;
+@property (nonatomic, strong) IBOutlet AVPlayerLayer * avPlayerLayer;
 
-    /** Avaiable method in the view **/
-    - (id)init: (NSDictionary*) options;
+
+
+/** Avaiable method in the view **/
+- (id)init: (NSDictionary*) options;
+
+
+
 
 @end
 
 
 @interface AdsVPNavigationController : UINavigationController
-    @property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
+@property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
 @end
