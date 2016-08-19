@@ -113,114 +113,177 @@
 @implementation AdsVPViewController
 
 
-    - (id)init: (NSDictionary*) options
-    {
-        self = [super init];
-        if (self != nil){ [self createViews]; }
-        return self;
-    }
-
-
-    /** Set no statusBar for fullscreen **/
-    - (BOOL)prefersStatusBarHidden {
-        return YES;
-    }
-
-
-    /** Start creating the player view **/
-    - (void)createViews
-    {
-        
-        /** Creating the link to the boundle used **/
-        NSBundle* AdsVPBundle = [NSBundle bundleForClass:[AdsVP class]];
-        
-        // We create the views in code for primarily for ease of upgrades and not requiring an external .xib to be included
-        CGRect playerViewBounds = self.view.bounds;
-        
-        self.playerView = [[UIView alloc] initWithFrame:playerViewBounds];
-        
-        [self.view addSubview:self.playerView];
-        [self.view sendSubviewToBack:self.playerView];
-        
-        
-        /** Configure the view  **/
-        self.playerView.backgroundColor = [UIColor blackColor];
-        
-        /** Configure the spinner **/
-        self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-        self.spinner.alpha = 1.000;
-        self.spinner.autoresizesSubviews = YES;
-        self.spinner.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleRightMargin);
-        self.spinner.clearsContextBeforeDrawing = NO;
-        self.spinner.clipsToBounds = NO;
-        self.spinner.contentMode = UIViewContentModeScaleToFill;
-        self.spinner.frame =  CGRectMake(round((self.playerView.frame.size.width - 25) / 2), round((self.playerView.frame.size.height - 25) / 2), 25, 25);
-        self.spinner.hidden = NO;
-        self.spinner.hidesWhenStopped = YES;
-        self.spinner.multipleTouchEnabled = NO;
-        self.spinner.opaque = NO;
-        self.spinner.userInteractionEnabled = NO;
-        [self.spinner startAnimating];
-        
-        /** Creating the close button **/
-        self.closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        self.closeButton.frame = CGRectMake(self.playerView.frame.size.width - 40, 0.0, 40, 40);
-        self.closeButton.autoresizesSubviews = YES;
-        self.closeButton.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin);
-        UIImage* closeButtonImage = [UIImage imageNamed:@"AdsVP.bundle/CloseButton" inBundle:AdsVPBundle compatibleWithTraitCollection:nil];
-        [self.closeButton setImage:closeButtonImage forState:UIControlStateNormal];
-        [self.closeButton addTarget:self action:@selector(btnCloseClicked:)forControlEvents:UIControlEventTouchUpInside];
-        
-        
-        /** Creating the skiplabel **/
-        self.skipLabel = [[UILabel alloc] init];
-        self.skipLabel.frame = CGRectMake(self.playerView.frame.size.width - 40, self.playerView.frame.size.height - 40, 0, 0);
-        self.skipLabel.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin);
-        self.skipLabel.backgroundColor=[UIColor clearColor];
-        self.skipLabel.textColor=[UIColor whiteColor];
-        self.skipLabel.userInteractionEnabled=YES;
-        self.skipLabel.text= @"Puoi saltare questo video tra x secondi";
-        
-        
-        /**Creating the video player */
-        NSURL *fileURL = [NSURL fileURLWithPath:@"http://clips.vorwaerts-gmbh.de/VfE_html5.mp4"];
-        self.avPlayerItem = [AVPlayerItem playerItemWithURL:fileURL];
-        self.avPlayer = [AVPlayer playerWithPlayerItem:self.avPlayerItem];
-        self.avPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:self.avPlayer];
-        self.avPlayerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-        self.avPlayerLayer.frame = self.view.bounds;
-        
-        
-        
-        /** Attacching elements to the view **/
-        [self.view addSubview:self.spinner];
-        [self.view addSubview:self.closeButton];
-        [self.view addSubview:self.skipLabel];
-        
-        
-        [self.playerView.layer addSublayer:self.avPlayerLayer];
-        [self.avPlayer play];
-        
-        
-        
-        
-        
-    }
-
-
-    - (void)start
-    {
-        
-    }
+- (id)init: (NSDictionary*) options
+{
+    self = [super init];
+    if (self != nil){ [self createViews]; }
+    return self;
+}
 
 
 
 
-    /** On Button CLose clicked **/
-    -(IBAction)btnCloseClicked:(UIButton*)btn
-    {
-        NSLog(@"button tapped");
-    }
+/** Set no statusBar for fullscreen **/
+- (BOOL)prefersStatusBarHidden {
+    return YES;
+}
+
+
+
+
+/** Start creating the player view **/
+- (void)createViews
+{
+    
+    /** Creating the link to the boundle used **/
+    NSBundle* AdsVPBundle = [NSBundle bundleForClass:[AdsVP class]];
+    
+    self.view = [[UIView alloc] init];
+    self.view.backgroundColor = [UIColor blackColor];
+    
+    /** Create View elements Configure the spinner **/
+    self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    self.spinner.alpha = 1.000;
+    self.spinner.clearsContextBeforeDrawing = NO;
+    self.spinner.contentMode = UIViewContentModeScaleToFill;
+    self.spinner.hidden = NO;
+    self.spinner.hidesWhenStopped = YES;
+    self.spinner.multipleTouchEnabled = NO;
+    self.spinner.opaque = NO;
+    self.spinner.userInteractionEnabled = NO;
+    [self.spinner setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [self.spinner startAnimating];
+    
+    
+    //Creating the close button
+    self.closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.closeButton.frame = CGRectMake(0, 0, 40.0, 40.0);
+    UIImage* closeButtonImage = [UIImage imageNamed:@"AdsVP.bundle/CloseButton" inBundle:AdsVPBundle compatibleWithTraitCollection:nil];
+    [self.closeButton setImage:closeButtonImage forState:UIControlStateNormal];
+    [self.closeButton addTarget:self action:@selector(btnCloseClicked:)forControlEvents:UIControlEventTouchUpInside];
+    [self.closeButton setTranslatesAutoresizingMaskIntoConstraints:NO];
+    
+    
+    //Creating the skiplabel
+    self.skipLabel = [[UILabel alloc] init];
+    self.skipLabel.frame = CGRectMake(0, 0, 40.0, 40.0);
+    self.skipLabel.backgroundColor=[UIColor clearColor];
+    self.skipLabel.textColor=[UIColor whiteColor];
+    self.skipLabel.userInteractionEnabled=FALSE;
+    self.skipLabel.font=[self.skipLabel.font fontWithSize:12];
+    self.skipLabel.text= @"Puoi saltare questo video tra x secondi";
+    [self.skipLabel setTranslatesAutoresizingMaskIntoConstraints:NO];
+    
+    
+    //Creating the video player
+    NSURL *fileURL = [NSURL fileURLWithPath:@"https://www.peer5.com/media/bay_bridge.mp4"];
+    self.avPlayerItem = [AVPlayerItem playerItemWithURL:fileURL];
+    self.avPlayer = [AVPlayer playerWithPlayerItem:self.avPlayerItem];
+    self.avPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:self.avPlayer];
+    self.avPlayerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+    self.avPlayerLayer.frame = self.view.bounds;
+    
+    
+    //Attacching elements to the new created player view
+    [self.view addSubview:self.closeButton];
+    [self.view addSubview:self.skipLabel];
+    [self.view addSubview:self.spinner];
+    [self.view.layer addSublayer:self.avPlayerLayer];
+    
+    
+    // Spinner Placement
+    [self.view addConstraint:[NSLayoutConstraint
+                              constraintWithItem:self.spinner
+                              attribute:NSLayoutAttributeCenterX
+                              relatedBy:NSLayoutRelationEqual
+                              toItem:self.view
+                              attribute:NSLayoutAttributeCenterX
+                              multiplier:1.0
+                              constant:0.0
+                              ]
+     ];
+    
+    [self.view addConstraint:[NSLayoutConstraint
+                              constraintWithItem:self.spinner
+                              attribute:NSLayoutAttributeCenterY
+                              relatedBy:NSLayoutRelationEqual
+                              toItem:self.view
+                              attribute:NSLayoutAttributeCenterY
+                              multiplier:1.0 constant:0.0
+                              ]
+     ];
+    
+    
+    
+    
+    
+    // Close Button Placement
+    [self.view addConstraint:[NSLayoutConstraint
+                              constraintWithItem:self.closeButton
+                              attribute:NSLayoutAttributeRight
+                              relatedBy:NSLayoutRelationEqual
+                              toItem:self.view
+                              attribute:NSLayoutAttributeRight
+                              multiplier:1.0
+                              constant:-10
+                              ]
+     ];
+    
+    [self.view addConstraint:[NSLayoutConstraint
+                              constraintWithItem:self.closeButton
+                              attribute:NSLayoutAttributeTop
+                              relatedBy:NSLayoutRelationEqual
+                              toItem:self.view
+                              attribute:NSLayoutAttributeTop
+                              multiplier:1.0 constant:10
+                              ]
+     ];
+    
+    
+    
+    
+    // Text Label Placement
+    [self.view addConstraint:[NSLayoutConstraint
+                              constraintWithItem:self.skipLabel
+                              attribute:NSLayoutAttributeBottom
+                              relatedBy:NSLayoutRelationEqual
+                              toItem:self.view
+                              attribute:NSLayoutAttributeBottom
+                              multiplier:1.0
+                              constant:-10
+                              ]
+     ];
+    
+    // Text Label Placement
+    [self.view addConstraint:[NSLayoutConstraint
+                              constraintWithItem:self.skipLabel
+                              attribute:NSLayoutAttributeLeft
+                              relatedBy:NSLayoutRelationEqual
+                              toItem:self.view
+                              attribute:NSLayoutAttributeLeft
+                              multiplier:1.0
+                              constant:10
+                              ]
+     ];
+    
+    
+    
+}
+
+
+- (void) viewDidAppear:(BOOL) animated {
+    [self.avPlayer play];
+    [super viewDidAppear:animated];
+}
+
+
+
+
+/** On Button CLose clicked **/
+-(IBAction)btnCloseClicked:(UIButton*)btn
+{
+    NSLog(@"button tapped");
+}
 
 @end
 
