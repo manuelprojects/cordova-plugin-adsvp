@@ -28,6 +28,7 @@
 @class AdsVPViewController;
 
 
+
 @interface AdsVP : CDVPlugin {}
 @property (nonatomic, retain) AdsVPViewController* AdsVPViewController;
 @property (nonatomic, copy) NSString* callbackId;
@@ -36,32 +37,26 @@
 
 
 
-@interface AdsVPViewController : UIViewController <CDVScreenOrientationDelegate>{}
-
+@interface AdsVPViewController : UIViewController <UIWebViewDelegate, CDVScreenOrientationDelegate>{}
 /** Define the view that will be used to display the player **/
 @property (nonatomic, strong) IBOutlet AVPlayerViewController* avPlayerController;
 @property (nonatomic, strong) IBOutlet UIActivityIndicatorView* spinner;
 @property (nonatomic, strong) IBOutlet UIButton* closeButton;
 @property (nonatomic, strong) IBOutlet UILabel * skipLabel;
-
 @property AVURLAsset *asset;
-
 
 
 /** Implementation of the player */
 @property (nonatomic, strong) IBOutlet AVPlayerItem * avPlayerItem;
 @property (nonatomic, strong) IBOutlet AVPlayer * avPlayer;
 @property (nonatomic, strong) IBOutlet AVPlayerLayer * avPlayerLayer;
-
-
+@property (nonatomic, weak) AdsVP* navigationDelegate;
 
 /** Avaiable method in the view **/
 - (id)init: (NSDictionary*) options;
-
-
-
-
 @end
+
+
 
 
 @interface AdsVPNavigationController : UINavigationController

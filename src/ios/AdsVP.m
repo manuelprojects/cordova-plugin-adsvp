@@ -48,27 +48,16 @@
     
     /** Verify that an url has been passet to the plugin or redirect with error **/
     if(videoURL == nil){
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"incorrect number of arguments"];
+        [self initError];
     }
     
     
     /** If a video url has been passed **/
     else{
-        
         /** Call the video player open **/
         [self openVideoPlayer:[NSURL URLWithString:videoURL] withOptions:options];
-        
-        /** Create plugin result as video started **/
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        
+        [self initSuccess];
     }
-    
-    
-    /** Set keep callback for futures possible callbacks **/
-    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-    
-    /** Return the callback */
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     
 }
 
@@ -90,6 +79,7 @@
         
         /** call the initialization of the player **/
         self.AdsVPViewController = [[AdsVPViewController alloc] init: options];
+        self.AdsVPViewController.navigationDelegate = self;
     }
     
     
@@ -100,10 +90,61 @@
         }
     });
     
-    
 }
 
+
+
+
+
+//Callback actions definitions
+- (void)initSuccess
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"INIT_SUCCESS"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+}
+
+
+- (void)initError
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"INIT_ERROR"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+}
+
+
+- (void)videoEnded
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"VIDEO_ENDED"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+}
+
+- (void)videoSkip
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"VIDEO_SKIPPED"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+}
+
+- (void)videoError
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"VIDEO_ERROR"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+}
+
+
+- (void)videoStarted
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"VIDEO_STARTED"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+}
+
+
 @end
+
 
 
 
@@ -116,19 +157,9 @@
 
 
 
+
 #pragma mark CDVAdsVPViewController
 @implementation AdsVPViewController
-
-
-- (id)init: (NSDictionary*) options
-{
-    self = [super init];
-    if (self != nil){ [self createViews]; }
-    return self;
-}
-
-
-
 
 /** Set no statusBar for fullscreen **/
 - (BOOL)prefersStatusBarHidden {
@@ -136,12 +167,9 @@
 }
 
 
-
-
 /** Start creating the player view **/
-- (void)createViews
+- (id)init: (NSDictionary*) options
 {
-    
     
     /** Creating the link to the boundle used **/
     NSBundle* AdsVPBundle = [NSBundle bundleForClass:[AdsVP class]];
@@ -162,7 +190,6 @@
     [self.spinner setTranslatesAutoresizingMaskIntoConstraints:NO];
     [self.spinner startAnimating];
     
-    
     //Creating the close button
     self.closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.closeButton.frame = CGRectMake(0, 0, 40.0, 40.0);
@@ -170,7 +197,6 @@
     [self.closeButton setImage:closeButtonImage forState:UIControlStateNormal];
     [self.closeButton addTarget:self action:@selector(btnCloseClicked:)forControlEvents:UIControlEventTouchUpInside];
     [self.closeButton setTranslatesAutoresizingMaskIntoConstraints:NO];
-    
     
     //Creating the skiplabel
     self.skipLabel = [[UILabel alloc] init];
@@ -181,7 +207,6 @@
     self.skipLabel.font=[self.skipLabel.font fontWithSize:12];
     self.skipLabel.text= @"Puoi saltare questo video tra x secondi";
     [self.skipLabel setTranslatesAutoresizingMaskIntoConstraints:NO];
-    
     
     //Creating the video player
     NSURL *url = [NSURL URLWithString:@"https://www.peer5.com/media/bay_bridge.mp4"];
@@ -195,14 +220,11 @@
     [self.avPlayerController.player addObserver:self forKeyPath:@"status" options:0 context:nil];
     [self.avPlayerController.player addObserver:self forKeyPath:@"rate" options:NSKeyValueObservingOptionNew context:NULL];
     
-    
-    
     //Attacching elements to the new created player view
     [self.view addSubview:self.avPlayerController.view];
     [self.view addSubview:self.closeButton];
     [self.view addSubview:self.skipLabel];
     [self.view addSubview:self.spinner];
-    
     
     // Spinner Placement
     [self.view addConstraint:[NSLayoutConstraint
@@ -227,9 +249,6 @@
      ];
     
     
-    
-    
-    
     // Close Button Placement
     [self.view addConstraint:[NSLayoutConstraint
                               constraintWithItem:self.closeButton
@@ -251,8 +270,6 @@
                               multiplier:1.0 constant:10
                               ]
      ];
-    
-    
     
     
     // Text Label Placement
@@ -279,8 +296,7 @@
                               ]
      ];
     
-    
-    
+    return self;
 }
 
 
@@ -289,20 +305,19 @@
 //Listener callback for player status change
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     
-    
     //check the player init status
     if (object == self.avPlayerController.player && [keyPath isEqualToString:@"status"]) {
+        
+        [self.navigationDelegate videoStarted];
+        
+        //If ready to play
         if (self.avPlayerController.player.status == AVPlayerStatusReadyToPlay) {
             
             [self.avPlayerController.player play];
-            
-            
             __weak AdsVPViewController* weakSelf = self;
-            
             
             _timeObserverToken = [self.avPlayerController.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:dispatch_get_main_queue() usingBlock:
                                   ^(CMTime time) {
-                                      
                                       
                                       NSInteger skippableInSeconds = 10;
                                       Boolean allowSkip = YES;
@@ -312,12 +327,10 @@
                                           /***** calculate the time skip remaining for change the label text *****/
                                           NSInteger RemainingSkip = (skippableInSeconds - CMTimeGetSeconds(time));
                                           
-                                          
                                           /***** if the current passing time seconds is more than one second change the label text, not show the 0 seconds... *****/
                                           if(RemainingSkip >= 1 ){
                                               weakSelf.skipLabel.text  = [NSString stringWithFormat:@"Puoi saltare questo video tra %ld", (long) RemainingSkip];
                                           }
-                                          
                                           
                                           /***** if the current passing time seconds is bigger than the skip time set and the skip is allowed hide the label and show the close button *****/
                                           if(RemainingSkip <= 0 ){
@@ -328,13 +341,15 @@
                                       }
                                       
                                   }];
-            
-            
-            
-        } else if (self.avPlayerController.player.status == AVPlayerStatusFailed) {
-            NSLog(@"fail play");
+        }
+        
+        //if some errors occures
+        else if (self.avPlayerController.player.status == AVPlayerStatusFailed) {
+            [self.navigationDelegate videoError];
         }
     }
+    
+    
     
     //check the player playing status
     if (object == self.avPlayerController.player && [keyPath isEqualToString:@"rate"]) {
@@ -345,7 +360,7 @@
             
             //if the video is ended
             if (CMTimeGetSeconds(self.avPlayerController.player.currentTime) >= CMTimeGetSeconds(self.avPlayerController.player.currentItem.duration)) {
-                NSLog(@"video ended");
+                [self.navigationDelegate videoEnded];
                 self.spinner.hidden = YES;
             }
             //if the video is blocked due to other reasons...
@@ -360,20 +375,15 @@
         }
     }
     
-    
-    
-    
-    
 }
-
-
 
 
 /** On Button CLose clicked **/
 -(IBAction)btnCloseClicked:(UIButton*)btn
 {
-    NSLog(@"button tapped");
+    [self.navigationDelegate videoSkip];
 }
+
 
 @end
 
