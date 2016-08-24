@@ -33,6 +33,7 @@
 @property (nonatomic, retain) AdsVPViewController* AdsVPViewController;
 @property (nonatomic, copy) NSString* callbackId;
 - (void)play:(CDVInvokedUrlCommand*)command;
+- (void)close:(CDVInvokedUrlCommand*)command;
 @end
 
 
@@ -45,6 +46,14 @@
 @property (nonatomic, strong) IBOutlet UILabel * skipLabel;
 @property AVURLAsset *asset;
 
+@property NSString *forceRotation;
+@property Boolean isSkippable;
+@property NSInteger skippableInSeconds;
+
+
+
+
+
 
 /** Implementation of the player */
 @property (nonatomic, strong) IBOutlet AVPlayerItem * avPlayerItem;
@@ -53,7 +62,8 @@
 @property (nonatomic, weak) AdsVP* navigationDelegate;
 
 /** Avaiable method in the view **/
-- (id)init: (NSDictionary*) options;
+- (id)init: (NSURL*)url withOptions:(NSDictionary*)options;
+- (void)close;
 @end
 
 

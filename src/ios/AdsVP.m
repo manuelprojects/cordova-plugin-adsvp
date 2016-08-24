@@ -35,12 +35,9 @@
  */
 - (void)play:(CDVInvokedUrlCommand*)command{
     
-    /**Creating plugin result object **/
-    CDVPluginResult* pluginResult;
-    
     /** Reciving options settings for the plugin **/
     NSString* videoURL = [command argumentAtIndex:0];
-    NSDictionary* options = [command argumentAtIndex:1];
+    NSDictionary* options = [command argumentAtIndex:1 withDefault:nil];
     
     
     /** Assign callback as self for better managment **/
@@ -62,6 +59,16 @@
 }
 
 
+- (void)close:(CDVInvokedUrlCommand*)command{
+    
+    /** Assign callback as self for better managment **/
+    self.callbackId = command.callbackId;
+    
+    [self.AdsVPViewController close];
+    
+}
+
+
 
 
 /**
@@ -70,7 +77,6 @@
 - (void)openVideoPlayer:(NSURL*)url withOptions:(NSDictionary*)options
 {
     
-    
     __weak AdsVP* weakSelf = self;
     
     
@@ -78,7 +84,7 @@
     if (self.AdsVPViewController == nil) {
         
         /** call the initialization of the player **/
-        self.AdsVPViewController = [[AdsVPViewController alloc] init: options];
+        self.AdsVPViewController = [[AdsVPViewController alloc] init: (NSURL*)url withOptions:(NSDictionary*)options];
         self.AdsVPViewController.navigationDelegate = self;
     }
     
@@ -95,9 +101,30 @@
 
 
 
+/**
+ * This method is used to close the video player
+ */
+- (void)exit
+{
+    if (self.callbackId != nil) {
+        [self exitSuccess];
+        self.callbackId = nil;
+    }
+    self.AdsVPViewController.navigationDelegate = nil;
+    self.AdsVPViewController = nil;
+}
+
+
 
 //Callback actions definitions
 - (void)initSuccess
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"EXIT_SUCCESS"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+}
+
+- (void)exitSuccess
 {
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"INIT_SUCCESS"];
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -107,7 +134,7 @@
 
 - (void)initError
 {
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"INIT_ERROR"];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"INIT_ERROR"];
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
 }
@@ -142,6 +169,14 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
 }
 
+- (void)closeSuccess
+{
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"CLOSE_SUCCESS"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+}
+
+
 
 @end
 
@@ -168,8 +203,14 @@
 
 
 /** Start creating the player view **/
-- (id)init: (NSDictionary*) options
+- (id)init: (NSURL*)url withOptions:(NSDictionary*)options
 {
+    
+    self.forceRotation = [options valueForKey:@"forceRotation"];
+    self.isSkippable = [[options valueForKey:@"isSkippable"] boolValue];
+    self.skippableInSeconds = [[options valueForKey:@"skippableInSeconds"] integerValue];
+    
+    
     
     /** Creating the link to the boundle used **/
     NSBundle* AdsVPBundle = [NSBundle bundleForClass:[AdsVP class]];
@@ -193,10 +234,13 @@
     //Creating the close button
     self.closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.closeButton.frame = CGRectMake(0, 0, 40.0, 40.0);
+    self.closeButton.hidden = YES;
     UIImage* closeButtonImage = [UIImage imageNamed:@"AdsVP.bundle/CloseButton" inBundle:AdsVPBundle compatibleWithTraitCollection:nil];
     [self.closeButton setImage:closeButtonImage forState:UIControlStateNormal];
     [self.closeButton addTarget:self action:@selector(btnCloseClicked:)forControlEvents:UIControlEventTouchUpInside];
     [self.closeButton setTranslatesAutoresizingMaskIntoConstraints:NO];
+    
+    
     
     //Creating the skiplabel
     self.skipLabel = [[UILabel alloc] init];
@@ -205,11 +249,9 @@
     self.skipLabel.textColor=[UIColor whiteColor];
     self.skipLabel.userInteractionEnabled=FALSE;
     self.skipLabel.font=[self.skipLabel.font fontWithSize:12];
-    self.skipLabel.text= @"Puoi saltare questo video tra x secondi";
     [self.skipLabel setTranslatesAutoresizingMaskIntoConstraints:NO];
     
     //Creating the video player
-    NSURL *url = [NSURL URLWithString:@"https://www.peer5.com/media/bay_bridge.mp4"];
     AVPlayer *avPlayer = [[AVPlayer alloc] initWithURL: url];
     self.avPlayerController = [[AVPlayerViewController alloc]init];
     self.avPlayerController.player = avPlayer;
@@ -302,6 +344,34 @@
 
 
 
+- (void)close
+{
+    
+    [self.avPlayerController.player removeObserver:self forKeyPath:@"status"];
+    [self.avPlayerController.player removeObserver:self forKeyPath:@"rate"];
+    [self.avPlayerController.player pause];
+    
+    
+    if ((self.navigationDelegate != nil) && [self.navigationDelegate respondsToSelector:@selector(exit)]) {
+        [self.navigationDelegate exit];
+    }
+    
+    __weak UIViewController* weakSelf = self;
+    
+    // Run later to avoid the "took a long time" log message.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ([weakSelf respondsToSelector:@selector(presentingViewController)]) {
+            [[weakSelf presentingViewController] dismissViewControllerAnimated:YES completion:nil];
+        } else {
+            [[weakSelf parentViewController] dismissViewControllerAnimated:YES completion:nil];
+        }
+    });
+}
+
+
+
+
+
 //Listener callback for player status change
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     
@@ -319,13 +389,10 @@
             _timeObserverToken = [self.avPlayerController.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:dispatch_get_main_queue() usingBlock:
                                   ^(CMTime time) {
                                       
-                                      NSInteger skippableInSeconds = 10;
-                                      Boolean allowSkip = YES;
-                                      
-                                      if(allowSkip){
+                                      if(weakSelf.isSkippable){
                                           
                                           /***** calculate the time skip remaining for change the label text *****/
-                                          NSInteger RemainingSkip = (skippableInSeconds - CMTimeGetSeconds(time));
+                                          NSInteger RemainingSkip = (weakSelf.skippableInSeconds - CMTimeGetSeconds(time));
                                           
                                           /***** if the current passing time seconds is more than one second change the label text, not show the 0 seconds... *****/
                                           if(RemainingSkip >= 1 ){
@@ -376,6 +443,7 @@
     }
     
 }
+
 
 
 /** On Button CLose clicked **/
