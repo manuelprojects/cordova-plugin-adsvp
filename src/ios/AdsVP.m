@@ -212,6 +212,17 @@
     
     
     
+    //set the orientation
+    if([self.forceRotation  isEqualToString:@"landscape"]){
+        [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIInterfaceOrientationLandscapeLeft]forKey:@"orientation"];
+    }
+    else if([self.forceRotation  isEqualToString:@"portrait"]){
+        [[UIDevice currentDevice] setValue:[NSNumber numberWithInteger: UIInterfaceOrientationPortrait]forKey:@"orientation"];
+    }
+    
+    
+    
+    
     /** Creating the link to the boundle used **/
     NSBundle* AdsVPBundle = [NSBundle bundleForClass:[AdsVP class]];
     
@@ -437,7 +448,7 @@
             
         }
         //if the video is playing correctly
-        else if (rate == 1.0) {
+        else{
             self.spinner.hidden = YES;
         }
     }
