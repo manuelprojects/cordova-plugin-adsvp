@@ -4,9 +4,21 @@
     <description>Advertising Video Player</description>
     <license>MIT</license>
     <keywords>cordova,advertising,adsvp</keywords>
+
     <js-module name="AdsVP" src="www/AdsVP.js">
         <clobbers target="cordova.plugins.AdsVP" />
     </js-module>
+
+    <platform name="android">
+        <config-file target="config.xml" parent="/*">
+            <feature name="AdsVP">
+                <param name="android-package" value="ch.mediati.cordova.AdsVP"/>
+            </feature>
+        </config-file>
+        <source-file src="src/android/AdsVP.java" target-dir="src/ch/mediati/cordova" />
+    </platform>
+
+
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
             <feature name="AdsVP">
