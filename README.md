@@ -21,7 +21,7 @@
 
 You can play a video withouts controls for the user with a timer for force the user see the video.
 
-This plugin provides a the access to the player using `cordova.plugins.AdsVP.play()`.
+This plugin provides a the access to the player using `cordova.plugins.AdsVP.play()`
 
     `cordova.plugins.AdsVP.play( "http://myvideo.com/video.mp4,
         successCallback(s),
