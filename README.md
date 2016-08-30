@@ -24,11 +24,20 @@ You can play a video withouts controls for the user with a timer for force the u
 This plugin provides a the access to the player using `cordova.plugins.AdsVP.play()`
 
     cordova.plugins.AdsVP.play( "http://myvideo.com/video.mp4,
-        successCallback(s),
-        errorCallback(s),
+        successCallback,
+        errorCallback,
         {
             "forceRotation" : "landscape",
             "isSkippable" : true,
             "skippableInSeconds" : 15,
         }
     );
+
+
+The successCallback always return a status that can be one of the follow:
+
+INIT_SUCCESS: Video has been initizalized
+VIDEO_STARTED: Video is begin playing
+VIDEO_ENDED: Video has terminated
+VIDEO_SKIPPED: The user has click on close button before the video end
+
