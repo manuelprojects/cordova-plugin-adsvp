@@ -37,7 +37,10 @@ This plugin provides a the access to the player using `cordova.plugins.AdsVP.pla
 The successCallback always return a status that can be one of the follow:
 
 INIT_SUCCESS: Video has been initizalized
+
 VIDEO_STARTED: Video is begin playing
+
 VIDEO_ENDED: Video has terminated
+
 VIDEO_SKIPPED: The user has click on close button before the video end
 
