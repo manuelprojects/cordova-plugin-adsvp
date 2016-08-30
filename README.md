@@ -23,7 +23,7 @@ You can play a video withouts controls for the user with a timer for force the u
 
 This plugin provides a the access to the player using `cordova.plugins.AdsVP.play()`
 
-    `cordova.plugins.AdsVP.play( "http://myvideo.com/video.mp4,
+    cordova.plugins.AdsVP.play( "http://myvideo.com/video.mp4,
         successCallback(s),
         errorCallback(s),
         {
@@ -31,4 +31,4 @@ This plugin provides a the access to the player using `cordova.plugins.AdsVP.pla
             "isSkippable" : true,
             "skippableInSeconds" : 15,
         }
-    );`
+    );
