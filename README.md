@@ -21,11 +21,17 @@
 
 You can play a video withouts controls for the user with a timer for force the user see the video.
 
-> To get a few ideas, check out the [sample](#sample) at the bottom of this page or go straight to the [reference](#reference) content.
+This plugin provides a the access to the player using `ordova.plugins.AdsVP.play()`.
 
-This plugin provides a web browser view that displays when calling `cordova.InAppBrowser.open()`.
-
-    var ref = cordova.InAppBrowser.open('http://apache.org', '_blank', 'location=yes');
+    cordova.plugins.AdsVP.play( "http://myvideo.com/video.mp4,
+                successCallback(s),
+                errorCallback(s),
+                {
+                    "forceRotation" : "landscape",
+                    "isSkippable" : true,
+                    "skippableInSeconds" : 15,
+                }
+            );
 
 The `cordova.InAppBrowser.open()` function is defined to be a drop-in replacement
 for the `window.open()` function.  Existing `window.open()` calls can use the
