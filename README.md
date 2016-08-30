@@ -17,7 +17,7 @@
 #         under the License.
 -->
 
-# cordova-plugin-adsvp
+# cordova-plugin-adsvp* Beta (Need Contributors for Android and iOs Testing)
 
 You can play a video withouts controls for the user with a timer for force the user see the video.
 
